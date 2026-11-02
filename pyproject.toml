@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "orlantech-network-intelligence-suite"
+version = "1.0.0"
+description = "Authorized defensive utilities for private LAN discovery and traffic metadata monitoring"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "colorama>=0.4.6,<1.0",
+  "requests>=2.32.5,<3.0",
+  "scapy>=2.7.0,<3.0",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.0,<9.0"]
+
+[project.scripts]
+nis = "network_intelligence.cli:main"
+nis-scan = "network_intelligence.scanner:main"
+nis-monitor = "network_intelligence.monitor:main"
+nis-health-check = "network_intelligence.health:main"
+
+[tool.setuptools.packages.find]
+include = ["network_intelligence*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
