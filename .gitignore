@@ -1,25 +1,32 @@
-# Created by venv; see https://docs.python.org/3/library/venv.html
-venv/Lib
-'.idea/workspace.xml
-# Python
-*.pyc
+# Python bytecode and caches
 __pycache__/
-*.pyo
-*.pyd
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 
-# Environment
-.env
+# Virtual environments
 .venv/
 venv/
 ENV/
 env/
 
-# Django
-db.sqlite3
+# Environment files and local data
+.env
+.env.*
+!.env.example
 *.log
-/staticfiles/
-media/
 
-# IDEs
+# Build and packaging output
+build/
+dist/
+*.egg-info/
+
+# Editor and OS files
 .vscode/
 .idea/
+.DS_Store
+Thumbs.db

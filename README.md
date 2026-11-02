@@ -1,53 +1,54 @@
-Orlantech Network Intelligence Suite
-A dual-tool security kit for local network asset discovery and real-time egress monitoring. This suite enables a "Blue Team" operator to map the network surface and then immediately pivot to watching for policy violations or data exfiltration.
+# Orlantech Network Intelligence Suite
 
-🛠️ The Toolkit
-1. Net-Explorer (Wifi-scanner.py)
-An advanced ARP-based network scanner that identifies active hosts, resolves manufacturer data via MAC OUI lookups, and probes for specific "at-risk" service ports.
+A small, Python-based toolkit for **authorized, defensive checks on networks you administer**. It provides private-LAN asset discovery, optional checks of a fixed set of common ports, and metadata-only monitoring of outbound IPv4 connections. The legacy `brutechecher.py` name is retained for compatibility, but the script no longer guesses passwords; it performs one loopback-only HTTP availability check.
 
-Key Feature: Includes specialized logic to flag potential surveillance equipment (IP Cameras) by scanning for RTSP (554) and ONVIF (3702) protocols.
+## Tools
 
-Protocol Layer: Operates at Layer 2 (Data Link) for discovery and Layer 4 (Transport) for port probing.
+### `Wifi_scanner.py` — private-LAN discovery
 
-2. Sentry-Sniff (sniffer.py)
-A real-time packet inspection engine that monitors outbound traffic from internal devices to the global web.
+Sends ARP discovery requests to an explicitly supplied RFC 1918 IPv4 network. Networks larger than 256 addresses and non-private ranges are rejected. Port checks are opt-in and limited to ports 80, 443, 554, 3702, and 8080. Vendor lookups are also opt-in because they send MAC addresses to the third-party macvendors.com service.
 
-Key Feature: Implements a "State Policy" (Blacklist) to alert the operator when a device contacts forbidden external zones.
+```bash
+python Wifi_scanner.py 192.168.1.0/24
+python Wifi_scanner.py 192.168.1.0/24 --probe-ports
+python Wifi_scanner.py 192.168.1.0/24 --vendor-lookup
+```
 
-Intelligence: Filters out local "noise" (traffic destined for the monitoring station) to provide a high-signal view of network egress.
+Run with the privileges required by your OS and Scapy/Npcap configuration. The target must be a network you own or have explicit permission to assess.
 
-🚀 Deployment Guide
-Prerequisites
-Environment: Python 3.10+
+### `sniffer.py` — outbound connection metadata
 
-Dependencies: scapy, requests, colorama
+Captures IPv4 packet headers on the selected interface and reports only packets from a private source address to a globally routable destination. It does not print or store packet payloads. Optional blocked destination IPs are highlighted; this is exact-IP matching, not a threat-intelligence feed.
 
-System Driver: Npcap (Windows) or Libpcap (Linux)
+```bash
+python sniffer.py --interface "Wi-Fi" --exclude-ip 192.168.1.20
+python sniffer.py --interface eth0 --duration 60 --forbidden-ip 203.0.113.10
+```
 
-Privileges: Must be executed as Administrator/Root to utilize Raw Sockets.
+The capture runs until interrupted unless `--duration` is set. Use only on interfaces and networks for which you have monitoring authorization. Packet capture may require Administrator/root privileges and a supported capture driver.
 
-Quick Start
-Map the Terrain:
-Update target_range in scanner.py (e.g., 192.168.1.0/24) and run:
+### `brutechecher.py` — local endpoint availability
 
-Bash
-python scanner.py
-Monitor the Perimeter:
-Identify your interface ID and exclude your own IP in sniffer.py, then run:
+The historical filename is preserved, but password guessing and credential submission have been removed. The script makes a single GET request to a loopback URL only, does not follow redirects, and does not send credentials.
 
-Bash
-python sniffer.py
+```bash
+python brutechecher.py
+python brutechecher.py http://localhost:8000/login/
+```
 
+## Setup
 
-📊 Technical Specifications & Logic
-Component	Method	Security Objective
-Discovery	ARP Who-has Broadcast	Rapid asset identification without triggering OS firewalls.
-Vendor ID	API-based MAC Lookup	Identifying rogue hardware or unauthorized device types.
-Port Probing	TCP Three-way Handshake	Surface area mapping (Web, HTTPS, RTSP).
-Packet Sniffing	Promiscuous Mode Hook	Detecting "Phone Home" behavior and C2 (Command & Control) traffic.
+Python 3.10 or later is recommended.
 
+```bash
+python -m venv .venv
+# Linux/macOS
+source .venv/bin/activate
+# Windows PowerShell
+.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+```
 
+## Safety and privacy
 
-⚖️ Ethical & Legal Use
-This suite is part of the Orlantech Innovations educational portfolio. It is designed for network administrators to audit their own infrastructure. Unauthorized scanning or sniffing on public or third-party networks is illegal and unethical.
-
+Use these utilities only on systems and networks you own or are explicitly authorized to assess. The scanner deliberately rejects public ranges and limits discovery scope. Port probing and external vendor lookups are disabled unless explicitly requested. Packet capture is limited to connection metadata in the program's output, but the operating system and capture driver may still have access to full packets. Review applicable laws, organizational policy, and consent requirements before use.
